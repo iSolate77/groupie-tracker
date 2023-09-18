@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"groupie-tracker/internal/handlers"
+	"groupie-tracker/handlers"
 )
 
 func main() {

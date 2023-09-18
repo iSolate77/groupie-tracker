@@ -1,0 +1,15 @@
+project-folder/
+|-- main.go             // Entry point for your Go application
+|-- api/
+|   |-- api.go          // API integration code
+|-- handlers/
+|   |-- handlers.go     // HTTP request handlers
+|-- templates/
+|   |-- index.html      // HTML templates for your web pages
+|-- static/
+|   |-- css/
+|   |   |-- style.css   // CSS styles
+|   |-- js/
+|   |   |-- script.js   // JavaScript for client-side interactions
+|-- go.mod              // Go module file
+|-- README.md           // Project documentation
