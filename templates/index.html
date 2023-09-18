@@ -2,13 +2,27 @@
 <html>
 
 <head>
-    <title>My Web App</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-    <script src="/static/js/script.js"></script>
+    <title>Artist Information</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/style.css">
 </head>
 
 <body>
-    <h1>Hello</h1>
+    <h1>Artists</h1>
+    <ul>
+        <!-- Loop through artists and display them -->
+        {{range .}}
+        <li>{{.Name}}</li>
+        {{end}}
+    </ul>
+    <hr />
+    <h2>Locations</h2>
+    <ul>
+        {{range .Locations}}
+        <li>ID: {{.ID}}, Locations: {{.Locations}}, Dates: {{.Dates}}</li>
+        {{end}}
+    </ul>
+
+    <script src="/static/js/script.js"></script>
 </body>
 
 </html>
