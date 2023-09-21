@@ -13,3 +13,67 @@ project-folder/
 |   |   |-- script.js   // JavaScript for client-side interactions
 |-- go.mod              // Go module file
 |-- README.md           // Project documentation
+================================================================
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+)
+
+type LocationResponse struct {
+	ID        int      `json:"id"`
+	Locations []string `json:"locations"`
+	DatesURL  string   `json:"dates"`
+}
+
+func getLocationData(id int) (*LocationResponse, error) {
+	// Define the API URL with the given ID
+	apiURL := fmt.Sprintf("https://groupietrackers.herokuapp.com/api/locations/%d", id)
+
+	// Send an HTTP GET request to the API
+	resp, err := http.Get(apiURL)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	// Check if the response status code is not OK (200)
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Received non-OK response: %s", resp.Status)
+	}
+
+	// Decode the JSON response
+	var locationData LocationResponse
+	err = json.NewDecoder(resp.Body).Decode(&locationData)
+	if err != nil {
+		return nil, err
+	}
+
+	return &locationData, nil
+}
+
+func main() {
+	// Start from ID 1 and continue until you receive an empty response
+	id := 1
+
+	for {
+		locationData, err := getLocationData(id)
+		if err != nil {
+			fmt.Printf("Error retrieving data for ID %d: %v\n", id, err)
+			break
+		}
+
+		// Print the retrieved data
+		fmt.Printf("ID: %d\n", locationData.ID)
+		fmt.Println("Locations:")
+		for i, loc := range locationData.Locations {
+			fmt.Printf("%d\t%s\n", i, loc)
+		}
+		fmt.Println("Dates URL:", locationData.DatesURL)
+
+		// Increment the ID for the next iteration
+		id++
+	}
+}

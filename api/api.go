@@ -26,10 +26,10 @@ type Artist struct {
 	Relations    string   `json:"relations"`
 }
 
-type Location struct {
+type LocationResponse struct {
 	ID        int      `json:"id"`
 	Locations []string `json:"locations"`
-	Dates     string   `json:"dates"`
+	DatesURL  string   `json:"dates"`
 }
 
 type Date struct {
@@ -88,4 +88,3 @@ func ParseLocationsData(data []byte) ([]Location, error) {
 	}
 	return locations, nil
 }
-
