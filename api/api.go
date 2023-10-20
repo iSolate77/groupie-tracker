@@ -30,6 +30,7 @@ type LocationResponse struct {
 	ID        int      `json:"id"`
 	Locations []string `json:"locations"`
 	DatesURL  string   `json:"dates"`
+	Dates     []string `json:"datesList"`
 }
 
 type Location struct {
@@ -91,4 +92,27 @@ func ParseLocationsData(data []byte) ([]LocationResponse, error) {
 		return nil, err
 	}
 	return response.Index, nil
+}
+
+func FetchDatesFromAPI(url string) ([]byte, error) {
+	res, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func ParseDatesData(data []byte) (Date, error) {
+	var dates Date
+	err := json.Unmarshal(data, &dates)
+	if err != nil {
+		return Date{}, err
+	}
+	return dates, nil
 }

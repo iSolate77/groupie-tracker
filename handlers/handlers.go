@@ -35,6 +35,22 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var dates []api.Date
+	for i, location := range locations {
+		datesData, err := api.FetchDatesFromAPI(location.DatesURL)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		datesForLocation, err := api.ParseDatesData(datesData)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		locations[i].Dates = datesForLocation.Dates
+		dates = append(dates, datesForLocation)
+	}
+
 	// Render HTML using a template
 	tmpl, err := template.ParseFiles("templates/index.html")
 	if err != nil {
@@ -45,9 +61,11 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	data := struct {
 		Artists   []api.Artist
 		Locations []api.LocationResponse
+		Dates     []api.Date
 	}{
 		Artists:   artists,
 		Locations: locations,
+		Dates:     dates,
 	}
 
 	// Pass data to the template

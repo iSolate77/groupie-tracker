@@ -1,16 +1,16 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 
 <head>
     <title>Artist Information</title>
-    <link rel="stylesheet" type="text/css" href="/static/css/style.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/style.css" />
 </head>
 
 <body>
     <h1>Artists</h1>
     <ul>
         <!-- Loop through artists and display them -->
-        {{range .}}
+        {{range .Artists}}
         <li>{{.Name}}</li>
         {{end}}
     </ul>
@@ -18,7 +18,21 @@
     <h2>Locations</h2>
     <ul>
         {{range .Locations}}
-        <li>ID: {{.ID}}, Locations: {{.Locations}}, Dates: {{.Dates}}</li>
+        <li>
+            <strong>ID: {{.ID}}</strong><br />
+            Locations:
+            <ul>
+                {{range .Locations}}
+                <li>{{.}}</li>
+                {{end}}
+            </ul>
+            Dates:
+            <ul>
+                {{range .Dates}}
+                <li>{{.}}</li>
+                {{end}}
+            </ul>
+        </li>
         {{end}}
     </ul>
 
