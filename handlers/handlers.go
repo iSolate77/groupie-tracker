@@ -15,7 +15,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	locationsData, err := api.FetchLocationsFromAPI(api.LocationsURL)
+	locationsData, err := api.FetchDataFromAPI(api.LocationsURL)
 	// datesData, err := api.FetchDatesFromAPI()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -37,7 +37,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 
 	var dates []api.Date
 	for i, location := range locations {
-		datesData, err := api.FetchDatesFromAPI(location.DatesURL)
+		datesData, err := api.FetchDataFromAPI(location.DatesURL)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -49,6 +49,28 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		locations[i].Dates = datesForLocation.Dates
 		dates = append(dates, datesForLocation)
+	}
+
+	relationsData, err := api.FetchDataFromAPI(api.RelationURL)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	relations, err := api.ParseRelationsData(relationsData)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	relationMap := make(map[int]map[string][]string)
+	for _, relation := range relations {
+		relationMap[relation.ID] = relation.DatesLocation
+	}
+
+	for i, artist := range artists {
+		if datesLocations, ok := relationMap[artist.ID]; ok {
+			artists[i].Concerts = datesLocations
+		}
 	}
 
 	// Render HTML using a template

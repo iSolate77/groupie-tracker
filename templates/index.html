@@ -9,27 +9,19 @@
 <body>
     <h1>Artists</h1>
     <ul>
-        <!-- Loop through artists and display them -->
         {{range .Artists}}
-        <li>{{.Name}}</li>
-        {{end}}
-    </ul>
-    <hr />
-    <h2>Locations</h2>
-    <ul>
-        {{range .Locations}}
         <li>
-            <strong>ID: {{.ID}}</strong><br />
-            Locations:
+            {{.Name}}
             <ul>
-                {{range .Locations}}
-                <li>{{.}}</li>
-                {{end}}
-            </ul>
-            Dates:
-            <ul>
-                {{range .Dates}}
-                <li>{{.}}</li>
+                {{range $location, $dates := .Concerts}}
+                <li>
+                    Location: {{$location}}
+                    <ul>
+                        {{range $dates}}
+                        <li>Date: {{.}}</li>
+                        {{end}}
+                    </ul>
+                </li>
                 {{end}}
             </ul>
         </li>
