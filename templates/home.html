@@ -1,0 +1,18 @@
+{{define "content"}}
+<div class="artists-list">
+  {{range .Artists}}
+  <div class="artist-item">
+    <img src="{{.Image}}" alt="{{.Name}}" />
+    <h2>{{.Name}}</h2>
+  </div>
+  {{end}}
+</div>
+
+<div class="pagination">
+  {{if .HasPrev}}
+  <a href="/?page={{.PrevPage}}">Previous</a>
+  {{end}} Page {{.CurrentPage}} of {{.TotalPages}} {{if .HasNext}}
+  <a href="/?page={{.NextPage}}">Next</a>
+  {{end}}
+</div>
+{{end}}

@@ -103,3 +103,29 @@ func ParseRelationsData(data []byte) ([]Relation, error) {
 	}
 	return relations.Index, nil
 }
+
+func FetchPaginatedArtists(pageNumber int) ([]Artist, int, error) {
+	// Fetch all artists data (modify this to support pagination in the future)
+	artistData, err := FetchDataFromAPI(ArtistsURL)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	artists, err := ParseArtistData(artistData)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// For simplicity, let's assume 10 artists per page
+	perPage := 10
+	totalPages := (len(artists) + perPage - 1) / perPage
+
+	// Calculate start and end indices for slicing
+	start := (pageNumber - 1) * perPage
+	end := start + perPage
+	if end > len(artists) {
+		end = len(artists)
+	}
+
+	return artists[start:end], totalPages, nil
+}

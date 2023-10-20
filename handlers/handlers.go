@@ -2,96 +2,56 @@ package handlers
 
 import (
 	"groupie-tracker/api"
-	"html/template"
+	"groupie-tracker/render"
 	"net/http"
+	"strconv"
 )
+
+var renderer *render.TemplateReader
+
+func SetRenderer(r *render.TemplateReader) {
+	renderer = r
+}
 
 // IndexHandler handles the root URL
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
-	// Fetch data from API
-	artistData, err := api.FetchDataFromAPI(api.ArtistsURL)
+	// Fetch page number from query parameters
+	pageQuery := r.URL.Query().Get("page")
+	pageNumber, _ := strconv.Atoi(pageQuery)
+	if pageNumber <= 0 {
+		pageNumber = 1
+	}
+
+	// Fetch paginated data from API (assuming you have a function for this)
+	artists, totalPages, err := api.FetchPaginatedArtists(pageNumber)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	locationsData, err := api.FetchDataFromAPI(api.LocationsURL)
-	// datesData, err := api.FetchDatesFromAPI()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Parse data
-	artists, err := api.ParseArtistData(artistData)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	locations, err := api.ParseLocationsData(locationsData)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	var dates []api.Date
-	for i, location := range locations {
-		datesData, err := api.FetchDataFromAPI(location.DatesURL)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		datesForLocation, err := api.ParseDatesData(datesData)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		locations[i].Dates = datesForLocation.Dates
-		dates = append(dates, datesForLocation)
-	}
-
-	relationsData, err := api.FetchDataFromAPI(api.RelationURL)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	relations, err := api.ParseRelationsData(relationsData)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	relationMap := make(map[int]map[string][]string)
-	for _, relation := range relations {
-		relationMap[relation.ID] = relation.DatesLocation
-	}
-
-	for i, artist := range artists {
-		if datesLocations, ok := relationMap[artist.ID]; ok {
-			artists[i].Concerts = datesLocations
-		}
-	}
-
-	// Render HTML using a template
-	tmpl, err := template.ParseFiles("templates/index.html")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
+	// Prepare data for the template
 	data := struct {
-		Artists   []api.Artist
-		Locations []api.LocationResponse
-		Dates     []api.Date
+		Title       string
+		Artists     []api.Artist
+		CurrentPage int
+		TotalPages  int
+		HasNext     bool
+		HasPrev     bool
+		NextPage    int
+		PrevPage    int
 	}{
-		Artists:   artists,
-		Locations: locations,
-		Dates:     dates,
+		Title:       "Home",
+		Artists:     artists,
+		CurrentPage: pageNumber,
+		TotalPages:  totalPages,
+		HasNext:     pageNumber < totalPages,
+		HasPrev:     pageNumber > 1,
+		NextPage:    pageNumber + 1,
+		PrevPage:    pageNumber - 1,
 	}
 
-	// Pass data to the template
-	err = tmpl.Execute(w, data)
+	// Parse and execute the templates
+	err = renderer.Render(r.Context(), w, "base", data)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
