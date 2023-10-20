@@ -10,6 +10,11 @@ import (
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	// Fetch data from API
 	artistData, err := api.FetchDataFromAPI(api.ArtistsURL)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	locationsData, err := api.FetchLocationsFromAPI(api.LocationsURL)
 	// datesData, err := api.FetchDatesFromAPI()
 	if err != nil {
@@ -19,6 +24,11 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Parse data
 	artists, err := api.ParseArtistData(artistData)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	locations, err := api.ParseLocationsData(locationsData)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -34,7 +44,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 
 	data := struct {
 		Artists   []api.Artist
-		Locations []api.Location
+		Locations []api.LocationResponse
 	}{
 		Artists:   artists,
 		Locations: locations,

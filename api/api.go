@@ -2,7 +2,7 @@ package api
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
@@ -32,6 +32,10 @@ type LocationResponse struct {
 	DatesURL  string   `json:"dates"`
 }
 
+type Location struct {
+	Index []LocationResponse `json:"index"`
+}
+
 type Date struct {
 	ID    int      `json:"id"`
 	Dates []string `json:"Dates"`
@@ -48,7 +52,7 @@ func FetchDataFromAPI(url string) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +76,7 @@ func FetchLocationsFromAPI(url string) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -80,11 +84,11 @@ func FetchLocationsFromAPI(url string) ([]byte, error) {
 	return data, nil
 }
 
-func ParseLocationsData(data []byte) ([]Location, error) {
-	var locations []Location
-	err := json.Unmarshal(data, &locations)
+func ParseLocationsData(data []byte) ([]LocationResponse, error) {
+	var response Location
+	err := json.Unmarshal(data, &response)
 	if err != nil {
 		return nil, err
 	}
-	return locations, nil
+	return response.Index, nil
 }
