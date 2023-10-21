@@ -117,7 +117,7 @@ func FetchPaginatedArtists(pageNumber int) ([]Artist, int, error) {
 	}
 
 	// For simplicity, let's assume 10 artists per page
-	perPage := 10
+	perPage := 12
 	totalPages := (len(artists) + perPage - 1) / perPage
 
 	// Calculate start and end indices for slicing

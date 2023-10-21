@@ -1,18 +1,22 @@
 {{define "content"}}
-<div class="artists-list">
+<div class="artists-list row">
   {{range .Artists}}
-  <div class="artist-item">
-    <img src="{{.Image}}" alt="{{.Name}}" />
-    <h2>{{.Name}}</h2>
+  <div class="col-md-3 mb-4">
+    <div class="card">
+      <img src="{{.Image}}" class="card-img-top" alt="{{.Name}}">
+      <div class="card-body">
+        <h5 class="card-title">{{.Name}}</h5>
+      </div>
+    </div>
   </div>
   {{end}}
 </div>
 
 <div class="pagination">
   {{if .HasPrev}}
-  <a href="/?page={{.PrevPage}}">Previous</a>
+  <button><a href="/?page={{.PrevPage}}">Previous</a></button>
   {{end}} Page {{.CurrentPage}} of {{.TotalPages}} {{if .HasNext}}
-  <a href="/?page={{.NextPage}}">Next</a>
+  <button><a href=" /?page={{.NextPage}}">Next</a></button>
   {{end}}
 </div>
 {{end}}
