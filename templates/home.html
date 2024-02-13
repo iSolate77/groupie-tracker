@@ -13,8 +13,8 @@
       </div>
     </div>
   </div>
-  <div class="modal fade" id="exampleModal{{$index}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel{{$index}}"
-    aria-hidden="true">
+  <div class="modal fade" id="exampleModal{{$index}}" tabindex="-1" role="dialog"
+    aria-labelledby="exampleModalLabel{{$index}}" aria-hidden="true">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
@@ -24,7 +24,19 @@
           <ul>
             <h2>{{$artist.Name}}</h2>
             <li>
-              fgfgf
+              {{$artist.FirstAlbum}}
+            </li>
+            <li>
+              <strong>Members:</strong>
+              <ul>
+                {{range $member := $artist.Members}}
+                <li>{{$member}}</li>
+                {{end}}
+              </ul>
+            </li>
+            
+            <li>
+              <strong>Locations:</strong> <a href="{{$artist.Locations}}">View Locations</a>
             </li>
           </ul>
         </div>
