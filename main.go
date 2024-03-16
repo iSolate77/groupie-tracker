@@ -15,14 +15,17 @@ func main() {
 	}
 
 	// Serve static files (CSS, JS, etc.)
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	mux := http.NewServeMux()
+	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	handlers.SetRenderer(renderer)
 
-	http.HandleFunc("/", handlers.IndexHandler)
+	mux.HandleFunc("/", handlers.IndexHandler)
+	mux.HandleFunc("/location/{id}", handlers.LocationHandler)
+
 	// http.HandleFunc("/search", handlers.SearchHandler)
 
 	// Start the server
 	log.Println("Server is starting on port 8080...")
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":8080", mux)
 }
