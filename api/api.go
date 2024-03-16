@@ -11,49 +11,40 @@ const (
 	ArtistsURL   = baseURL + "/artists"
 	LocationsURL = baseURL + "/locations"
 	DatesURL     = baseURL + "/dates"
-	RelationURL  = baseURL + "/relations"
+	RelationURL  = baseURL + "/relation"
 )
 
 // Artist represents the data structure for artists
 type Artist struct {
-	ID           int                 `json:"id"`
-	Image        string              `json:"image"`
-	Name         string              `json:"name"`
-	Members      []string            `json:"members"`
-	CreationDate int                 `json:"creationDate"`
-	FirstAlbum   string              `json:"firstAlbum"`
-	Locations    string              `json:"locations"`
-	Concerts     map[string][]string `json:"-"`
-	Relations    string              `json:"relations"`
+	ID           int      `json:"id"`
+	Image        string   `json:"image"`
+	Name         string   `json:"name"`
+	Members      []string `json:"members"`
+	CreationDate int      `json:"creationDate"`
+	FirstAlbum   string   `json:"firstAlbum"`
+	Locations    string   `json:"locations"`
+	Concerts     string   `json:"concertDates"`
+	Relations    string   `json:"relations"`
 }
 
-type locationResponse struct {
+type Location struct {
 	ID        int      `json:"id"`
 	Locations []string `json:"locations"`
 	DatesURL  string   `json:"dates"`
-	Dates     []string `json:"datesList"`
-}
-
-type location struct {
-	Index []locationResponse `json:"index"`
+	// Dates     []string `json:"datesList"`
 }
 
 type date struct {
-	ID    int      `json:"id"`
-	Dates []string `json:"Dates"`
+	ID   int      `json:"id"`
+	Date []string `json:"dates"`
 }
 
-type relation struct {
+type Relation struct {
 	ID            int                 `json:"id"`
-	DatesLocation map[string][]string `json:"datesLocation"`
+	DatesLocation map[string][]string `json:"datesLocations"`
 }
 
-type RelationsWrapper struct {
-	Index []relation `json:"index"`
-}
-
-// fetchDataFromAPI retrieves data from the API endpoints
-func fetchDataFromAPI(url string) ([]byte, error) {
+func FetchDataFromAPI(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -68,79 +59,101 @@ func fetchDataFromAPI(url string) ([]byte, error) {
 	return data, nil
 }
 
-// parseArtistData parses JSON data for artists
-func parseArtistData(data []byte) ([]Artist, error) {
-	var artists []Artist
-	err := json.Unmarshal(data, &artists)
+func parseArtistData(data []byte) (artists []Artist, err error) {
+	err = json.Unmarshal(data, &artists)
 	if err != nil {
-		return nil, err
+		return artists, err
 	}
 	return artists, nil
 }
 
-func parseLocationsData(data []byte) ([]locationResponse, error) {
-	var response location
-	err := json.Unmarshal(data, &response)
+func parseLocationsData(data []byte) (locations Location, err error) {
+	err = json.Unmarshal(data, &locations)
 	if err != nil {
-		return nil, err
+		return locations, err
 	}
-	return response.Index, nil
+	return locations, nil
 }
 
-func parseDatesData(data []byte) (date, error) {
-	var dates date
-	err := json.Unmarshal(data, &dates)
+func parseDatesData(data []byte) (dates []date, err error) {
+	err = json.Unmarshal(data, &dates)
 	if err != nil {
-		return date{}, err
+		return dates, err
 	}
 	return dates, nil
 }
 
-func parseRelationsData(data []byte) ([]relation, error) {
-	var relations RelationsWrapper
-	err := json.Unmarshal(data, &relations)
+func parseRelationsData(data []byte) (relations Relation, err error) {
+	err = json.Unmarshal(data, &relations)
 	if err != nil {
-		return nil, err
+		return relations, err
 	}
-	return relations.Index, nil
+	return relations, nil
 }
 
-func FetchPaginatedArtists(pageNumber int) ([]Artist, int, error) {
+func FetchPaginatedArtists(pageNumber int) (artists []Artist, pages int, err error) {
 	// Fetch all artists data (modify this to support pagination in the future)
-	artistData, err := fetchDataFromAPI(ArtistsURL)
+	artistData, err := FetchDataFromAPI(ArtistsURL)
 	if err != nil {
-		return nil, 0, err
+		return artists, 0, err
 	}
 
-	artists, err := parseArtistData(artistData)
+	artists, err = parseArtistData(artistData)
 	if err != nil {
-		return nil, 0, err
+		return artists, 0, err
 	}
 
 	// For simplicity, let's assume 10 artists per page
 	perPage := 15
-	totalPages := (len(artists) + perPage - 1) / perPage
+	pages = (len(artists) + perPage - 1) / perPage
 
-	// Calculate start and end indices for slicing
 	start := (pageNumber - 1) * perPage
-	end := start + perPage
+	end := start + 15
 	if end > len(artists) {
 		end = len(artists)
 	}
 
-	return artists[start:end], totalPages, nil
+	return artists[start:end], pages, nil
 }
 
-func FetchArtistByID(id string) (Artist, error) {
-	artistData, err := fetchDataFromAPI(ArtistsURL + "/" + id)
+func FetchArtistByID(id string) (artist Artist, err error) {
+	artistData, err := FetchDataFromAPI(ArtistsURL + "/" + id)
 	if err != nil {
 		return Artist{}, err
 	}
 
-	artists, err := parseArtistData(artistData)
+	err = json.Unmarshal(artistData, &artist)
 	if err != nil {
 		return Artist{}, err
 	}
 
-	return artists[0], nil
+	return artist, nil
+}
+
+func FetchLocationsByID(id string) (location Location, err error) {
+	locationData, err := FetchDataFromAPI(LocationsURL + "/" + id)
+	if err != nil {
+		return Location{}, err
+	}
+
+	location, err = parseLocationsData(locationData)
+	if err != nil {
+		return Location{}, err
+	}
+
+	return location, nil
+}
+
+func FetchRelationsByID(id string) (Relation, error) {
+	relationData, err := FetchDataFromAPI(RelationURL + "/" + id)
+	if err != nil {
+		return Relation{}, err
+	}
+
+	relations, err := parseRelationsData(relationData)
+	if err != nil {
+		return Relation{}, err
+	}
+
+	return relations, nil
 }

@@ -3,9 +3,9 @@ package handlers
 import (
 	"groupie-tracker/api"
 	"groupie-tracker/render"
-	"log"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type apiData struct {
@@ -19,6 +19,13 @@ type apiData struct {
 	PrevPage    int
 }
 
+type locationData struct {
+	Title          string
+	Artist         api.Artist
+	Locations      []string            `json:"locations"`
+	DatesLocations map[string][]string `json:"datesLocation"`
+}
+
 var renderer *render.TemplateReader
 
 func SetRenderer(r *render.TemplateReader) {
@@ -29,16 +36,23 @@ func SetRenderer(r *render.TemplateReader) {
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	// Fetch page number from query parameters
 	pageQuery := r.URL.Query().Get("page")
-	pageNumber, _ := strconv.Atoi(pageQuery)
-	if pageNumber <= 0 {
+	pageNumber, err := strconv.Atoi(pageQuery)
+	if err != nil || pageNumber <= 0 {
 		pageNumber = 1
 	}
 
 	// Fetch paginated data from API (assuming you have a function for this)
 	artists, totalPages, err := api.FetchPaginatedArtists(pageNumber)
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+	// Calculate start and end indices for slicing
+	start := (pageNumber - 1) * 15
+	end := start + 15
+	if end > len(artists) {
+		end = len(artists)
 	}
 
 	// Prepare data for the template
@@ -62,28 +76,41 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func LocationHandler(w http.ResponseWriter, r *http.Request) {
-	// Fetch the ID from the URL
-	id := r.URL.Query().Get("id")
+	artistID := r.PathValue("id")
 
-	// Fetch the artist from the API
-	artist, err := api.FetchArtistByID(id)
+	artist, err := api.FetchArtistByID(artistID)
 	if err != nil {
-		log.Printf("Error fetching artist: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Prepare data for the template
-	payload := apiData{
-		Title:   artist.Name,
-		Artists: []api.Artist{artist},
-	}
-
-	// Parse and execute the templates
-	err = renderer.Render(r.Context(), w, "base", payload)
+	locations, err := api.FetchLocationsByID(artistID)
 	if err != nil {
-		log.Printf("Error rendering template: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	relations, err := api.FetchRelationsByID(artistID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	payload := locationData{
+		Title:          "Location",
+		Artist:         artist,
+		Locations:      locations.Locations,
+		DatesLocations: relations.DatesLocation,
+	}
+
+	for location, dates := range payload.DatesLocations {
+		correctedLocation := strings.Replace(location, "_", " ", -1)
+
+		if correctedLocation != location {
+			payload.DatesLocations[correctedLocation] = dates
+			delete(payload.DatesLocations, location)
+		}
+	}
+
+	err = renderer.Render(r.Context(), w, "location", payload)
 }

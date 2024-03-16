@@ -27,5 +27,7 @@ func main() {
 
 	// Start the server
 	log.Println("Server is starting on port 8080...")
-	http.ListenAndServe(":8080", mux)
+	if err := http.ListenAndServe(":8080", mux); err != nil {
+		log.Fatal(err)
+	}
 }
